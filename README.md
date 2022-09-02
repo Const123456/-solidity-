@@ -1,11 +1,13 @@
 # 任务47: Task挑战赛, 版权保护校验解决方案。
-作者: 深职院-符博<br>
+### 作者: 深职院-符博<br>
 
 当今社会大多数人版权意识薄弱，这导致侵权事件时常发生，而我们的原作者在维权的过程也难免遇到很多问题，就比如作品没有办法确权，取证难，司法诉讼时间长等问题。而区块链特有的不可篡改、可追溯校验的技术特性,就很适合解决版权保护的发展瓶颈。所以区块链技术在一定程度上是能够助推司法诉讼，助力原作者举证维权，减少电子证据取证难、易消亡、易篡改、技术依赖性强等问题的存在，在知识产权保护等领域发挥它的技术作用。下面就来看看本文的重点---->版权保护校验解决方案的智能合约。<br>
 
 ps: 真正的区块链实战开发是要结合链上和链下的，本文将业务都写在了合约里，是为了方便大家理解阅读
 
-# 二, 合约解析 (本文共有四个合约)
+# 一, 合约解析 (本文共有四个合约)
+![image](https://user-images.githubusercontent.com/103564714/188133934-2bd6ef50-382c-4977-b0c3-ff3562c8dbe5.png)
+
 # 1, DataSource.sol<br>
 第一个合约是用来定义合约中的实体 常量 映射
 我在其都给好了注释
@@ -136,6 +138,11 @@ contract AppraisalBasic is DataSource {
         Deployer = msg.sender;
     }
     
+    // 提交到售卖行需判断产权是自己的
+     modifier myOwner(address userId, uint256 id) {
+        require(propertyIdToUserAddressMapping[id] == userId, "Property is does owner");
+        _;
+    }
      
     // 重要操作只允许合约部署者调用
      modifier isDeployer() {
@@ -276,13 +283,11 @@ contract AppraisalBasic is DataSource {
     function cancellation(uint256 propertyId, address userId)
     public
     propertyExist(propertyId) 
-    userExist(userId) 
+    userExist(userId)
+    myOwner(userId, propertyId)
     isDeployer
     returns (bool)
     {
-        // 产权得是自己的
-        require(propertyIdToUserAddressMapping[propertyId] == userId, "failed");
-        
         User storage user = userMapping[userId];
         
         // 删除用户该产权
@@ -437,7 +442,7 @@ contract AppraisalBasic is DataSource {
     
 }
 ```
-这里的功能我们如何结合链上链下呢， 比如用户的注册,法院的注册 还有产权的注册 我们都应该在后端进行校验认证之后才能将其地址注册到合约中去，就比如用户需要提供身份证 手机号等利用腾讯云的服务进行认证，产权注册需要提交版权登记的相关材料在后台进行审核，法院就更特殊了，需要提交相关证明材料，在审核通过和监管部门的确认之后才能将其注册到合约中。我们的地址生成可以用到fisco提供的java-Sdk去生成(下面会放示例代码)。我们用户的产权注册之后，在合约里会存储其信息，我们可以调用合约方法去查询，但我们不能一直依赖于合约，就像我开头说到的，区块链应用开发应该分为链上和链下，一些数据我们可以存到数据库中，关键的信息上链即可。在我们后端可以利用fisco提供的java-Sdk获取到合约调用后的事件，然后将其事件解析后把数据存到数据库里，这样查询的时候就不必再调用合约了，也减轻了我们合约的负担，本次task挑战中我也自定义写了一篇如何用java-Sdk去解析合约事件的文章https://github.com/WeBankBlockchain/WeBASE-Doc/pull/466，大家有兴趣可以看看。
+### 这里的功能我们如何结合链上链下呢， 比如用户的注册,法院的注册 还有产权的注册 我们都应该在后端进行校验认证之后才能将其地址注册到合约中去，就比如用户需要提供身份证 手机号等利用腾讯云的服务进行认证，产权注册需要提交版权登记的相关材料在后台进行审核，法院就更特殊了，需要提交相关证明材料，在审核通过和监管部门的确认之后才能将其注册到合约中。我们的地址生成可以用到fisco提供的java-Sdk去生成(下面会放示例代码)。我们用户的产权注册之后，在合约里会存储其信息，我们可以调用合约方法去查询，但我们不能一直依赖于合约，就像我开头说到的，区块链应用开发应该分为链上和链下，一些数据我们可以存到数据库中，关键的信息上链即可。在我们后端可以利用fisco提供的java-Sdk获取到合约调用后的事件，然后将其事件解析后把数据存到数据库里，这样查询的时候就不必再调用合约了，也减轻了我们合约的负担，本次task挑战中我也自定义写了一篇如何用java-Sdk去解析合约事件的文章https://github.com/WeBankBlockchain/WeBASE-Doc/pull/466 ，大家有兴趣可以看看。
 
 # 利用fisco提供的java-Sdk随机生成地址
 ```PowerShell
@@ -461,13 +466,6 @@ pragma experimental ABIEncoderV2;
 import "./AppraisalBasic.sol";
 
 contract AppraisalSale is AppraisalBasic{
-    
-    
-    // 提交到售卖行需判断产权是自己的
-     modifier myOwner(address userId, uint256 id) {
-        require(propertyIdToUserAddressMapping[id] == userId, "Property is does owner");
-        _;
-    }
     
      // 产权在售卖行
      modifier isSale(uint256 id) {
@@ -737,7 +735,7 @@ contract AppraisalSale is AppraisalBasic{
 }
 
 ```
-添加售卖转赠也是为了丰富内容，在实际开发中，售卖或者转赠都涉及到实际金额(交易金额，税务金额), 在此合约我只是模拟了交易，真正的交易(税务扣除)还是要在后端进行，交易成功后在合约中再进行产权的转移。
+### 添加售卖转赠也是为了丰富内容，在实际开发中，售卖或者转赠都涉及到实际金额(交易金额，税务金额), 在此合约我只是模拟了交易，真正的交易(税务扣除)还是要在后端进行，交易成功后在合约中再进行产权的转移。
 
 
 # AppraisalReport.sol
@@ -1066,54 +1064,75 @@ contract AppraisalReport is AppraisalSale{
 
 }
 ```
-此合约中的举报侵权, 是根据用于已上链的产权去举报的，提交到法院后，法院可以查询其链上信息进行快速确权，从而提高受理案件的速度。在案件办理的个个阶段都会有事件提交，可以通过解析事件获取数据并存储。在区块链及监管部门的加持下，可以提高案件办理的效率，更快的帮助创作者维权。
+### 此合约中的举报侵权, 是根据用于已上链的产权去举报的，提交到法院后，法院可以查询其链上信息进行快速确权，从而提高受理案件的速度。在案件办理的个个阶段都会有事件提交，可以通过解析事件获取数据并存储。在区块链及监管部门的加持下，更快的帮助创作者维权。
 
-# 三 合约测试
+# 二， 合约测试
 # 1, 首先我们先注册两个用户和一个法院
 ![image](https://user-images.githubusercontent.com/103564714/188062930-72fdcbe2-3dd0-4a63-9965-d8be3d439b32.png)
 ![image](https://user-images.githubusercontent.com/103564714/188063011-bd791a28-adf5-4e60-8195-1cacd85ef6bb.png)
 ![image](https://user-images.githubusercontent.com/103564714/188063071-2b68e248-6d49-4cb7-8658-71e5af983103.png)
 
-可以看到注册都注册成功了，这里为了方便测试 我在合约里给两个用户的初始值余额都是500
+### 可以看到注册都注册成功了，这里为了方便测试 我在合约里给两个用户的初始值余额都是500
 ![image](https://user-images.githubusercontent.com/103564714/188063034-6e772e96-be2a-4653-ba33-8983ccbe4e58.png)
 
 # 2, 注册产权查询
 ![image](https://user-images.githubusercontent.com/103564714/188063548-9caa1317-327f-45a2-a04d-f8b879f430fc.png)
 ![image](https://user-images.githubusercontent.com/103564714/188063557-06208070-35fc-41b6-b8e1-bff3fbd1fdf0.png)<br>
-可以看到已经注册成功。
+### 可以看到已经注册成功。
 ![image](https://user-images.githubusercontent.com/103564714/188063598-00d9f7c0-f74d-451f-bf8b-09405ab6800a.png)<br>
-然后我们可以去查询一下自己的产权<br>
+### 然后我们可以去查询一下自己的产权<br>
 ![image](https://user-images.githubusercontent.com/103564714/188063652-0bd17ce6-c4e7-430a-8208-4292fd043f69.png)<br>
-可以看到查询是没有问题的
-![image](https://user-images.githubusercontent.com/103564714/188063663-793ac0ba-f9a3-4b4d-97df-0750c9dd7900.png)
+### 可以看到查询是没有问题的<br>
+![image](https://user-images.githubusercontent.com/103564714/188063663-793ac0ba-f9a3-4b4d-97df-0750c9dd7900.png)<br>
 
 # 3, 产权售卖
-我们将用户Const的产权提交售卖<br>
+### 我们将用户Const的产权提交售卖<br>
 ![image](https://user-images.githubusercontent.com/103564714/188063963-84ef410d-7e1a-451c-9f00-cdd1368ce155.png)<br>
-成功后会触发提交事件<br>
+### 成功后会触发提交事件<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064055-96bc02d2-911b-4123-9810-db04aceed246.png)<br>
 
-调用查询全部售卖方法测试，可以看到正在售卖的产权信息<br>
+### 调用查询全部售卖方法测试，可以看到正在售卖的产权信息<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064161-e16a9c33-d768-494a-93ae-225c845ea907.png)<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064352-63c611d0-8a70-4d97-956d-db0a34423a26.png)
 
 # 4, 产权购买
-这里测试用户Fb购买用户Const的产权<br>
+### 这里测试用户Fb购买用户Const的产权<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064511-eab9bb74-bb0f-464d-9669-503e2a2c57d6.png)<br>
-成功后触发提交事件<br>
+### 成功后触发提交事件<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064528-39415ecd-e24c-4059-9c35-0450491484a9.png)<br>
-然后我们可以查询一下二者拥有的产权和余额<br>
-Fb的产权<br>
+### 然后我们可以查询一下二者拥有的产权和余额<br>
+### Fb的产权<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064683-039cefe9-4d40-4e8d-b38d-4d6c346c355d.png)<br>
-Const的产权<br>
+### Const的产权<br>
 ![image](https://user-images.githubusercontent.com/103564714/188064713-1945b702-a089-4d5d-8c62-e4ed10e475f6.png)<br>
-二者的余额情况
+### 二者的余额情况
 ![image](https://user-images.githubusercontent.com/103564714/188064740-3006c30e-48f5-4f58-a7f3-8922f0a3f1d1.png)
 ![image](https://user-images.githubusercontent.com/103564714/188064758-547aa3ea-5dc4-41a6-b416-21dbd7c323ea.png)
+### 转赠方法大家可以自行测试一下
 
 # 5, 投诉与受理
-这里测试Fb投诉自己id为0的产权被侵权
-![image](https://user-images.githubusercontent.com/103564714/188065297-26390d69-4eb4-4f13-a80c-85af9fe43d61.png)
+### 这里测试Fb向指定法院举报自己id为0的产权被侵权<br>
+![image](https://user-images.githubusercontent.com/103564714/188065297-26390d69-4eb4-4f13-a80c-85af9fe43d61.png)<br>
+### 举报成功后会触发举报相应的事件<br>
+![image](https://user-images.githubusercontent.com/103564714/188131859-6b7983fd-ed0c-4b32-a078-6be38cdb8147.png)<br>
+### 指定法院可以查看到相关详情 并受理案件<br>
+![image](https://user-images.githubusercontent.com/103564714/188132013-e02a99da-aab3-4321-8e17-f5f48c3e832b.png)<br>
+### 受理成功后会触发受理相应的事件<br>
+![image](https://user-images.githubusercontent.com/103564714/188132246-b9ca8ad1-8caf-42a9-aa64-944bd756825d.png)<br>
+### 最后的结案 法院会提交结案书 也会触发结案相应的事件<br>
+![image](https://user-images.githubusercontent.com/103564714/188133744-c82f45a3-a6fc-4a21-a5fe-01d358863af0.png)<br>
+
+![image](https://user-images.githubusercontent.com/103564714/188132326-d51312b1-00c8-4292-afe8-915cefb9c3e3.png)<br>
+
+# 三， 总结
+### 区块链技术其实并不能保证链下数据的真实性可靠性，只能保证信息一旦上链，就是全网一致并且难以篡改的。在用户产权注册的时候，我们必须在有关部门的监管下对其进行审核认证，才能保证链下和链上数据一致可靠，我也相信在未来的区块链发展中，会有更多可靠可信的链出现在我们的生活中，其衍生出来的区块链应用则能够方便，改善我们的生活。
+
+
+
+
+
+
+
 
 
 
