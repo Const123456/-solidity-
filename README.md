@@ -1068,4 +1068,59 @@ contract AppraisalReport is AppraisalSale{
 ```
 此合约中的举报侵权, 是根据用于已上链的产权去举报的，提交到法院后，法院可以查询其链上信息进行快速确权，从而提高受理案件的速度。在案件办理的个个阶段都会有事件提交，可以通过解析事件获取数据并存储。在区块链及监管部门的加持下，可以提高案件办理的效率，更快的帮助创作者维权。
 
-# 3 合约测试
+# 三 合约测试
+# 1, 首先我们先注册两个用户和一个法院
+![image](https://user-images.githubusercontent.com/103564714/188062930-72fdcbe2-3dd0-4a63-9965-d8be3d439b32.png)
+![image](https://user-images.githubusercontent.com/103564714/188063011-bd791a28-adf5-4e60-8195-1cacd85ef6bb.png)
+![image](https://user-images.githubusercontent.com/103564714/188063071-2b68e248-6d49-4cb7-8658-71e5af983103.png)
+
+可以看到注册都注册成功了，这里为了方便测试 我在合约里给两个用户的初始值余额都是500
+![image](https://user-images.githubusercontent.com/103564714/188063034-6e772e96-be2a-4653-ba33-8983ccbe4e58.png)
+
+# 2, 注册产权查询
+![image](https://user-images.githubusercontent.com/103564714/188063548-9caa1317-327f-45a2-a04d-f8b879f430fc.png)
+![image](https://user-images.githubusercontent.com/103564714/188063557-06208070-35fc-41b6-b8e1-bff3fbd1fdf0.png)<br>
+可以看到已经注册成功。
+![image](https://user-images.githubusercontent.com/103564714/188063598-00d9f7c0-f74d-451f-bf8b-09405ab6800a.png)<br>
+然后我们可以去查询一下自己的产权<br>
+![image](https://user-images.githubusercontent.com/103564714/188063652-0bd17ce6-c4e7-430a-8208-4292fd043f69.png)<br>
+可以看到查询是没有问题的
+![image](https://user-images.githubusercontent.com/103564714/188063663-793ac0ba-f9a3-4b4d-97df-0750c9dd7900.png)
+
+# 3, 产权售卖
+我们将用户Const的产权提交售卖<br>
+![image](https://user-images.githubusercontent.com/103564714/188063963-84ef410d-7e1a-451c-9f00-cdd1368ce155.png)<br>
+成功后会触发提交事件<br>
+![image](https://user-images.githubusercontent.com/103564714/188064055-96bc02d2-911b-4123-9810-db04aceed246.png)<br>
+
+调用查询全部售卖方法测试，可以看到正在售卖的产权信息<br>
+![image](https://user-images.githubusercontent.com/103564714/188064161-e16a9c33-d768-494a-93ae-225c845ea907.png)<br>
+![image](https://user-images.githubusercontent.com/103564714/188064352-63c611d0-8a70-4d97-956d-db0a34423a26.png)
+
+# 4, 产权购买
+这里测试用户Fb购买用户Const的产权<br>
+![image](https://user-images.githubusercontent.com/103564714/188064511-eab9bb74-bb0f-464d-9669-503e2a2c57d6.png)<br>
+成功后触发提交事件<br>
+![image](https://user-images.githubusercontent.com/103564714/188064528-39415ecd-e24c-4059-9c35-0450491484a9.png)<br>
+然后我们可以查询一下二者拥有的产权和余额<br>
+Fb的产权<br>
+![image](https://user-images.githubusercontent.com/103564714/188064683-039cefe9-4d40-4e8d-b38d-4d6c346c355d.png)<br>
+Const的产权<br>
+![image](https://user-images.githubusercontent.com/103564714/188064713-1945b702-a089-4d5d-8c62-e4ed10e475f6.png)<br>
+二者的余额情况
+![image](https://user-images.githubusercontent.com/103564714/188064740-3006c30e-48f5-4f58-a7f3-8922f0a3f1d1.png)
+![image](https://user-images.githubusercontent.com/103564714/188064758-547aa3ea-5dc4-41a6-b416-21dbd7c323ea.png)
+
+# 5, 投诉与受理
+这里测试Fb投诉自己id为0的产权被侵权
+![image](https://user-images.githubusercontent.com/103564714/188065297-26390d69-4eb4-4f13-a80c-85af9fe43d61.png)
+
+
+
+
+
+
+
+
+
+
