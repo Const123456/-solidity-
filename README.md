@@ -6,7 +6,9 @@
 ps: 真正的区块链实战开发是要结合链上和链下的，本文将业务都写在了合约里，是为了方便大家理解阅读
 
 # 一, 合约解析 (本文共有四个合约)
-![image](https://user-images.githubusercontent.com/103564714/188133934-2bd6ef50-382c-4977-b0c3-ff3562c8dbe5.png)
+# 合约流程图
+![image](https://user-images.githubusercontent.com/103564714/189173733-c48965cf-7fde-4ec6-92a1-9225f08f7324.png)
+
 
 # 1, DataSource.sol<br>
 第一个合约是用来定义合约中的实体 常量 映射
